@@ -20,31 +20,126 @@ colima start --cpu 2 --memory 4
 git clone https://github.com/YOUR_USERNAME/anki-selfhosted.git
 cd anki-selfhosted
 
-# 3. Start server
+# 3. Configure environment
+cp .env.example .env
+# Edit .env and set ANKI_PASSWORD
+
+# 4. Start server
 docker-compose up -d
 
-# 4. Verify
+# 5. Verify
 curl -I http://localhost:27701/
 ```
 
-### Configure Anki Clients
+## 🔧 Configuration
+
+### Environment Variables
+
+Create a `.env` file (see `.env.example`):
+
+```env
+# Generate a secure password with: openssl rand -base64 24
+ANKI_PASSWORD=your_secure_password_here
+SYNC_BASE=/data
+MAX_SYNC_PAYLOAD_MEGS=500
+SYNC_HOST=0.0.0.0
+SYNC_PORT=8080
+```
+
+### Anki Clients
 
 **Desktop (Anki):**
 1. Tools → Preferences → Syncing
-2. Custom sync server: `http://YOUR_IP:27701`
+2. Custom sync server: `https://anki.aenrione.com` (or your domain)
 3. Username: `alfredo`
-4. Password: `changeme` (change in docker-compose.yml)
+4. Password: (from your `.env` file)
 
 **Mobile (AnkiMobile/AnkiDroid):**
 1. Settings → Sync → Custom Sync Server
-2. URL: `http://YOUR_IP:27701`
+2. URL: `https://anki.aenrione.com`
 3. Same credentials
+
+## 🌐 External Access
+
+### Option 1: Direct Port (Simplest)
+
+Expose port 27701 directly and point your domain to your public IP:
+
+```yaml
+# docker-compose.yml - Direct mode
+services:
+  anki-sync-server:
+    image: maogxer/anki-sync-server:latest
+    ports:
+      - "27701:8080"
+    env_file:
+      - .env
+    # ... rest of config
+```
+
+**Requirements:**
+- Port forward 27701 in your router
+- DNS A record pointing to your public IP
+- SSL via reverse proxy (nginx, Caddy, Cloudflare Tunnel)
+
+### Option 2: Nginx Reverse Proxy (Recommended)
+
+Use nginx to proxy requests and serve a status page:
+
+```yaml
+# docker-compose.yml - Nginx mode (default)
+services:
+  anki-sync-server:
+    image: maogxer/anki-sync-server:latest
+    expose:
+      - "8080"
+    env_file:
+      - .env
+    # ... rest of config
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "27701:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./status:/usr/share/nginx/html:ro
+    depends_on:
+      - anki-sync-server
+```
+
+### Option 3: Cloudflare Tunnel (Easiest)
+
+For easy HTTPS without opening ports:
+
+```bash
+# Install cloudflared
+brew install cloudflared
+
+# Authenticate
+cloudflared tunnel login
+
+# Create tunnel
+cloudflared tunnel create anki-server
+
+# Route domain
+cloudflared tunnel route dns anki-server anki.aenrione.com
+
+# Start tunnel
+cloudflared tunnel run anki-server
+```
 
 ## 📁 Structure
 
 ```
 .
-├── docker-compose.yml          # Server config
+├── docker-compose.yml          # Server configuration
+├── .env.example                # Environment variables template
+├── nginx/
+│   └── nginx.conf             # Reverse proxy config
+├── status/
+│   └── index.html             # Status page
+├── data/                       # Anki collections (gitignored)
 ├── scripts/
 │   ├── start.sh               # Start server
 │   ├── stop.sh                # Stop server
@@ -55,7 +150,7 @@ curl -I http://localhost:27701/
 └── README.md                  # This file
 ```
 
-## 🔧 Service Mode (Always Running)
+## 🖥️ Service Mode (Always Running)
 
 ```bash
 # Install as launchd service (auto-start on boot)
@@ -68,39 +163,21 @@ launchctl list | grep anki
 tail -f ~/.openclaw/skills/anki-server/logs/anki-server.stderr.log
 ```
 
-## 🌐 External Access
+## 🔒 Security
 
-For access outside your network, use a reverse proxy:
+- **Change default password** in `.env` file
+- **Use HTTPS** for external access (Cloudflare, nginx + Let's Encrypt)
+- **Backup `data/` directory** regularly
+- **Don't commit `.env`** — it contains your password
 
-### Nginx Example
-
-```nginx
-server {
-    listen 443 ssl;
-    server_name anki.yourdomain.com;
-
-    ssl_certificate /path/to/cert.pem;
-    ssl_certificate_key /path/to/key.pem;
-
-    location / {
-        proxy_pass http://127.0.0.1:27701;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-```
-
-### Tailscale (Easy VPN)
+## 🔄 Backup
 
 ```bash
-# Install Tailscale
-brew install tailscale
+# Manual backup
+cp -r data/ backups/$(date +%Y%m%d)
 
-# Connect
-tailscale up
-
-# Access from anywhere
-# URL: http://your-mac-mini:27701
+# Or use script
+./scripts/backup.sh
 ```
 
 ## 🧠 OpenClaw Skill
@@ -123,33 +200,6 @@ Agent: ✅ 10 cards created from article
 
 User: "Anki stats"
 Agent: 📊 342 cards, 87% retention
-```
-
-## 📝 Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SYNC_USER1` | `alfredo:changeme` | Username:password |
-| `SYNC_BASE` | `/data` | Data directory |
-| `MAX_SYNC_PAYLOAD_MEGS` | `500` | Max upload size |
-| `SYNC_HOST` | `0.0.0.0` | Bind address |
-| `SYNC_PORT` | `8080` | Internal port |
-
-## 🔒 Security
-
-- Change default password in `docker-compose.yml`
-- Use HTTPS for external access (nginx/Caddy)
-- Consider VPN (Tailscale) for remote access
-- Backup `data/` directory regularly
-
-## 🔄 Backup
-
-```bash
-# Manual backup
-cp -r data/ backups/$(date +%Y%m%d)
-
-# Or use script
-./scripts/backup.sh
 ```
 
 ## 📄 License
