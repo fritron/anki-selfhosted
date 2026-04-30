@@ -1,11 +1,4 @@
-# Anki Self-Hosted Sync Server
-
-docker-compose.yml
-scripts/
-SKILL.md
-README.md
-
-# No subir datos ni logs
+# Datos y logs (NO subir)
 data/
 logs/
 backups/

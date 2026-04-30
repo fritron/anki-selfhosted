@@ -1,0 +1,36 @@
+#!/bin/bash
+# CLI helper for Anki operations
+
+ANKI_DIR="$HOME/.openclaw/skills/anki-server"
+SERVER_URL="${ANKI_SERVER_URL:-http://192.168.1.21:27701}"
+
+case "$1" in
+    start)
+        "$ANKI_DIR/scripts/start.sh"
+        ;;
+    stop)
+        "$ANKI_DIR/scripts/stop.sh"
+        ;;
+    status)
+        "$ANKI_DIR/scripts/status.sh"
+        ;;
+    logs)
+        docker logs -f anki-sync-server
+        ;;
+    backup)
+        BACKUP_DIR="$ANKI_DIR/backups/$(date +%Y%m%d_%H%M%S)"
+        mkdir -p "$BACKUP_DIR"
+        cp -r "$ANKI_DIR/data" "$BACKUP_DIR/"
+        echo "✅ Backup creado en $BACKUP_DIR"
+        ;;
+    *)
+        echo "Uso: anki [start|stop|status|logs|backup]"
+        echo ""
+        echo "Comandos:"
+        echo "  start   - Inicia el servidor Anki"
+        echo "  stop    - Detiene el servidor"
+        echo "  status  - Muestra estado del servidor"
+        echo "  logs    - Muestra logs en tiempo real"
+        echo "  backup  - Crea backup de datos"
+        ;;
+esac

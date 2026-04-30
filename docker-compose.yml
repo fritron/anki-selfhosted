@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  anki-sync-server:
+    image: maogxer/anki-sync-server:latest
+    container_name: anki-sync-server
+    restart: unless-stopped
+    ports:
+      - "27701:8080"
+    environment:
+      - SYNC_USER1=alfredo:${ANKI_PASSWORD:-changeme}
+      - SYNC_BASE=/data
+      - MAX_SYNC_PAYLOAD_MEGS=500
+    volumes:
+      - ./data:/data
+    networks:
+      - anki-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  anki-net:
+    driver: bridge
