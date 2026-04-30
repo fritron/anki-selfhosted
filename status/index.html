@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Anki Sync Server</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 { font-size: 28px; margin-bottom: 8px; color: #1a1a2e; }
+        .subtitle { color: #666; margin-bottom: 30px; }
+        .status {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+        .status-title { font-weight: 600; color: #2e7d32; margin-bottom: 4px; }
+        .status-text { color: #555; font-size: 14px; }
+        .config { margin-top: 24px; }
+        .config h2 { font-size: 18px; margin-bottom: 16px; color: #333; }
+        .config-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        .config-label { font-weight: 600; color: #555; font-size: 13px; text-transform: uppercase; }
+        .config-value { font-family: 'Courier New', monospace; color: #333; margin-top: 4px; }
+        .emoji { font-size: 48px; margin-bottom: 16px; }
+        .footer { margin-top: 24px; padding-top: 24px; border-top: 1px solid #eee; font-size: 13px; color: #888; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="emoji">🧠</div>
+        <h1>Anki Sync Server</h1>
+        <p class="subtitle">Self-hosted sync for your flashcards</p>
+        
+        <div class="status">
+            <div class="status-title">✅ Server Online</div>
+            <div class="status-text">Sync endpoint is active and ready for connections</div>
+        </div>
+        
+        <div class="config">
+            <h2>Connection Details</h2>
+            
+            <div class="config-item">
+                <div class="config-label">Sync URL</div>
+                <div class="config-value">http://192.168.1.21:27701</div>
+            </div>
+            
+            <div class="config-item">
+                <div class="config-label">Username</div>
+                <div class="config-value">alfredo</div>
+            </div>
+            
+            <div class="config-item">
+                <div class="config-label">Setup</div>
+                <div class="config-value" style="font-family: inherit;">
+                    Desktop: Tools → Preferences → Syncing<br>
+                    Mobile: Settings → Sync → Custom Server
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            Powered by <a href="https://github.com/ankitects/anki" style="color: #667eea;">Anki</a> · 
+            <a href="https://github.com/fritron/anki-selfhosted" style="color: #667eea;">GitHub</a>
+        </div>
+    </div>
+</body>
+</html>
