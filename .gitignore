@@ -1,0 +1,20 @@
+# Anki Self-Hosted Sync Server
+
+docker-compose.yml
+scripts/
+SKILL.md
+README.md
+
+# No subir datos ni logs
+data/
+logs/
+backups/
+*.log
+.env
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
