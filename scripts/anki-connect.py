@@ -34,8 +34,19 @@ def anki_request(action, **params):
         print(f"💡 Asegúrate que Anki Desktop esté abierto con AnkiConnect instalado")
         return None
 
+def sync():
+    """Sincroniza con el servidor"""
+    result = anki_request("sync")
+    if result and not result.get("error"):
+        print("✅ Sincronización completa")
+        return True
+    else:
+        error = result.get("error", "Unknown error") if result else "No response"
+        print(f"❌ Error en sync: {error}")
+        return False
+
 def create_card(front, back, deck="Default"):
-    """Crea una tarjeta básica"""
+    """Crea una tarjeta básica y fuerza sync automático"""
     note = {
         "deckName": deck,
         "modelName": "Basic",
@@ -49,6 +60,11 @@ def create_card(front, back, deck="Default"):
     result = anki_request("addNote", note=note)
     if result and not result.get("error"):
         print(f"✅ Card creada (ID: {result['result']})")
+        
+        # Sync automático después de crear
+        print("🔄 Sincronizando con servidor...")
+        sync()
+        
         return result['result']
     else:
         error = result.get("error", "Unknown error") if result else "No response"
@@ -60,6 +76,27 @@ def create_deck(name):
     result = anki_request("createDeck", deck=name)
     if result and not result.get("error"):
         print(f"✅ Deck '{name}' creado")
+        
+        # Sync automático después de crear
+        print("🔄 Sincronizando con servidor...")
+        sync()
+        
+        return True
+    else:
+        error = result.get("error", "Unknown error") if result else "No response"
+        print(f"❌ Error: {error}")
+        return False
+
+def delete_card(note_id):
+    """Elimina una card"""
+    result = anki_request("deleteNotes", notes=[note_id])
+    if result and not result.get("error"):
+        print(f"✅ Card {note_id} eliminada")
+        
+        # Sync automático después de eliminar
+        print("🔄 Sincronizando con servidor...")
+        sync()
+        
         return True
     else:
         error = result.get("error", "Unknown error") if result else "No response"
@@ -99,17 +136,6 @@ def search_cards(query):
             return notes['result']
     return []
 
-def delete_card(note_id):
-    """Elimina una card"""
-    result = anki_request("deleteNotes", notes=[note_id])
-    if result and not result.get("error"):
-        print(f"✅ Card {note_id} eliminada")
-        return True
-    else:
-        error = result.get("error", "Unknown error") if result else "No response"
-        print(f"❌ Error: {error}")
-        return False
-
 def get_stats():
     """Muestra estadísticas"""
     # Get collection stats
@@ -125,25 +151,6 @@ def get_stats():
         print(f"\n💾 Total cards: {total_cards}")
         return result['result']
     return None
-
-def sync():
-    """Sincroniza con el servidor"""
-    result = anki_request("sync")
-    if result and not result.get("error"):
-        print("✅ Sincronización completa")
-        return True
-    else:
-        error = result.get("error", "Unknown error") if result else "No response"
-        print(f"❌ Error: {error}")
-        return False
-
-def generate_from_text(text, deck="Default", num_cards=5):
-    """Placeholder para generación con IA"""
-    print(f"📝 Texto recibido ({len(text)} chars)")
-    print(f"🎯 Deck: {deck}")
-    print(f"📊 Cards a generar: {num_cards}")
-    print("💡 Esta función requiere integración con LLM")
-    # En implementación real, llamaría al LLM de OpenClaw
 
 def main():
     if len(sys.argv) < 2:
